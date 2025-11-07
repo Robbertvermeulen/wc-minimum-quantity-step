@@ -191,17 +191,6 @@
 
                 self.hideNotice();
             });
-
-            // Handle plus/minus buttons (common in WooCommerce themes)
-            $(document).on('click', '.plus, .minus, [class*="quantity__button"]', function(e) {
-                // Give the quantity input time to update
-                setTimeout(function() {
-                    var $quantityInput = $(self.quantityInputSelector);
-                    if ($quantityInput.length) {
-                        self.handleQuantityChange($quantityInput);
-                    }
-                }, 50);
-            });
         },
 
         /**
