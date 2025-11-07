@@ -109,9 +109,11 @@
             var $quantityInput = $(this.quantityInputSelector);
 
             if ($quantityInput.length) {
-                // Set step to 'any' to prevent HTML5 validation (only if not already set)
-                if ($quantityInput.attr('step') !== 'any') {
-                    $quantityInput.attr('step', 'any');
+                // Disable HTML5 validation on form level instead of changing step attribute
+                // This keeps step intact for theme compatibility while preventing browser validation
+                var $form = $quantityInput.closest('form');
+                if ($form.length && !$form.attr('novalidate')) {
+                    $form.attr('novalidate', 'novalidate');
                 }
 
                 // Set inputmode to numeric for better mobile experience
@@ -206,12 +208,6 @@
 
             // Hide any existing error messages (since user is adjusting)
             this.hideNotice();
-
-            // Keep step="any" to prevent HTML5 validation interference
-            // Only set if not already 'any' to avoid unnecessary DOM manipulation
-            if ($input.attr('step') !== 'any') {
-                $input.attr('step', 'any');
-            }
 
             // Auto-snap to nearest valid quantity based on step
             if (this.currentStep > 1) {
