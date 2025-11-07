@@ -1,0 +1,44 @@
+# Dutch translation for WooCommerce Minimum Quantity Step
+# Copyright (C) 2024 Robbert Vermeulen
+# This file is distributed under the same license as the WooCommerce Minimum Quantity Step plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Minimum Quantity Step 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/robbertvermeulen/wc-minimum-quantity-step\n"
+"POT-Creation-Date: 2024-11-07 12:00+0000\n"
+"PO-Revision-Date: 2024-11-07 12:00+0000\n"
+"Last-Translator: Robbert Vermeulen\n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Manual\n"
+
+#: wc-minimum-quantity-step.php:94
+msgid "WooCommerce Minimum Quantity Step requires WooCommerce to be installed and active."
+msgstr "WooCommerce Minimum Quantity Step vereist dat WooCommerce geïnstalleerd en actief is."
+
+#: wc-minimum-quantity-step.php:114
+#: wc-minimum-quantity-step.php:151
+msgid "Minimum Quantity Step"
+msgstr "Minimale Aantal Stappen"
+
+#: wc-minimum-quantity-step.php:116
+msgid "Set the minimum quantity step for this product (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions."
+msgstr "Stel de minimale aantal stappen in voor dit product (bijv. 2 betekent dat klanten alleen in veelvouden van 2 kunnen bestellen). Laat leeg of stel in op 1 voor geen beperkingen."
+
+#: wc-minimum-quantity-step.php:153
+msgid "Set the minimum quantity step for this variation (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions."
+msgstr "Stel de minimale aantal stappen in voor deze variatie (bijv. 2 betekent dat klanten alleen in veelvouden van 2 kunnen bestellen). Laat leeg of stel in op 1 voor geen beperkingen."
+
+#: wc-minimum-quantity-step.php:185
+#: wc-minimum-quantity-step.php:188
+msgid "This product must be ordered in multiples of %d."
+msgstr "Dit product moet besteld worden in veelvouden van %d."
+
+#: wc-minimum-quantity-step.php:230
+#: wc-minimum-quantity-step.php:257
+msgid "\"%s\" must be ordered in multiples of %d. Please adjust the quantity."
+msgstr "\"%s\" moet besteld worden in veelvouden van %d. Pas het aantal aan."
