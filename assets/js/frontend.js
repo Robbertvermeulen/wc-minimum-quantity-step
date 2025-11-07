@@ -28,6 +28,11 @@
         previousQuantity: 1,
 
         /**
+         * Flag to prevent recursive event loops when updating values
+         */
+        isUpdating: false,
+
+        /**
          * Quantity input selector - works with most WooCommerce themes
          */
         quantityInputSelector: 'input.qty, input[name="quantity"]',
@@ -104,14 +109,20 @@
             var $quantityInput = $(this.quantityInputSelector);
 
             if ($quantityInput.length) {
-                // Set step to 'any' to prevent HTML5 validation
-                $quantityInput.attr('step', 'any');
+                // Set step to 'any' to prevent HTML5 validation (only if not already set)
+                if ($quantityInput.attr('step') !== 'any') {
+                    $quantityInput.attr('step', 'any');
+                }
 
                 // Set inputmode to numeric for better mobile experience
-                $quantityInput.attr('inputmode', 'numeric');
+                if ($quantityInput.attr('inputmode') !== 'numeric') {
+                    $quantityInput.attr('inputmode', 'numeric');
+                }
 
                 // Ensure min is 1 for Google Shopping compliance
-                $quantityInput.attr('min', '1');
+                if ($quantityInput.attr('min') !== '1') {
+                    $quantityInput.attr('min', '1');
+                }
             }
         },
 
@@ -197,14 +208,21 @@
          * Handle quantity input change
          */
         handleQuantityChange: function($input) {
+            // Prevent recursive event loops when we programmatically update the value
+            if (this.isUpdating) {
+                return;
+            }
+
             var quantity = parseInt($input.val()) || 1;
 
             // Hide any existing error messages (since user is adjusting)
             this.hideNotice();
 
             // Keep step="any" to prevent HTML5 validation interference
-            // All validation is handled purely in JavaScript
-            $input.attr('step', 'any');
+            // Only set if not already 'any' to avoid unnecessary DOM manipulation
+            if ($input.attr('step') !== 'any') {
+                $input.attr('step', 'any');
+            }
 
             // Auto-snap to nearest valid quantity based on step
             if (this.currentStep > 1) {
@@ -216,7 +234,18 @@
 
                 // Only update if different to avoid cursor jumping on manual typing
                 if (quantity !== nearestValid) {
+                    // Set flag to prevent recursive calls
+                    this.isUpdating = true;
+
+                    // Update the input value
                     $input.val(nearestValid);
+
+                    // Release flag after a short delay to allow event propagation
+                    var self = this;
+                    setTimeout(function() {
+                        self.isUpdating = false;
+                    }, 50);
+
                     // Update previous quantity to the snapped value
                     this.previousQuantity = nearestValid;
                 } else {
