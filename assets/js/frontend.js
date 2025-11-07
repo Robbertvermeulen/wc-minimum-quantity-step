@@ -173,12 +173,43 @@
          * Handle quantity input change
          */
         handleQuantityChange: function($input) {
+            var quantity = parseInt($input.val()) || 1;
+
             // Hide any existing error messages (since user is adjusting)
             this.hideNotice();
 
             // Keep step="any" to prevent HTML5 validation interference
             // All validation is handled purely in JavaScript
             $input.attr('step', 'any');
+
+            // Auto-snap to nearest valid quantity based on step
+            if (this.currentStep > 1) {
+                var nearestValid = this.getNearestValidQuantity(quantity);
+
+                // Only update if different to avoid cursor jumping on manual typing
+                if (quantity !== nearestValid) {
+                    $input.val(nearestValid);
+                }
+            }
+        },
+
+        /**
+         * Get nearest valid quantity based on step
+         */
+        getNearestValidQuantity: function(quantity) {
+            if (this.currentStep <= 1) {
+                return quantity;
+            }
+
+            // Round to nearest multiple of step
+            var nearestValid = Math.round(quantity / this.currentStep) * this.currentStep;
+
+            // Ensure minimum is at least the step value
+            if (nearestValid < this.currentStep) {
+                nearestValid = this.currentStep;
+            }
+
+            return nearestValid;
         },
 
         /**
