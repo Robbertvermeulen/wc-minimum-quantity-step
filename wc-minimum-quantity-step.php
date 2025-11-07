@@ -61,8 +61,8 @@ class WC_Minimum_Quantity_Step {
      * Constructor
      */
     private function __construct() {
-        // Check if WooCommerce is active
-        add_action('plugins_loaded', array($this, 'init'));
+        // Initialize immediately
+        $this->init();
     }
 
     /**
@@ -81,6 +81,10 @@ class WC_Minimum_Quantity_Step {
         // Admin hooks - Add custom field to product
         add_action('woocommerce_product_options_inventory_product_data', array($this, 'add_quantity_step_field'));
         add_action('woocommerce_process_product_meta', array($this, 'save_quantity_step_field'));
+
+        // Variable product hooks
+        add_action('woocommerce_variation_options_pricing', array($this, 'add_variation_quantity_step_field'), 10, 3);
+        add_action('woocommerce_save_product_variation', array($this, 'save_variation_quantity_step_field'), 10, 2);
 
         // Frontend hooks
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
@@ -112,7 +116,11 @@ class WC_Minimum_Quantity_Step {
     public function add_quantity_step_field() {
         global $post;
 
-        echo '<div class="options_group">';
+        if (!$post || !$post->ID) {
+            return;
+        }
+
+        echo '<div class="options_group show_if_simple show_if_variable">';
 
         woocommerce_wp_text_input(
             array(
@@ -138,6 +146,45 @@ class WC_Minimum_Quantity_Step {
     public function save_quantity_step_field($post_id) {
         $step = isset($_POST['_minimum_quantity_step']) ? absint($_POST['_minimum_quantity_step']) : '';
         update_post_meta($post_id, '_minimum_quantity_step', $step);
+    }
+
+    /**
+     * Add quantity step field to variation
+     */
+    public function add_variation_quantity_step_field($loop, $variation_data, $variation) {
+        $variation_id = $variation->ID;
+        $step_value = get_post_meta($variation_id, '_minimum_quantity_step', true);
+
+        echo '<div class="form-row form-row-full">';
+
+        woocommerce_wp_text_input(
+            array(
+                'id'            => '_minimum_quantity_step_' . $loop,
+                'name'          => '_minimum_quantity_step[' . $loop . ']',
+                'label'         => __('Minimum Quantity Step', 'wc-minimum-quantity-step'),
+                'desc_tip'      => true,
+                'description'   => __('Set the minimum quantity step for this variation (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions.', 'wc-minimum-quantity-step'),
+                'type'          => 'number',
+                'value'         => $step_value,
+                'wrapper_class' => 'form-row form-row-full',
+                'custom_attributes' => array(
+                    'step' => '1',
+                    'min'  => '1'
+                )
+            )
+        );
+
+        echo '</div>';
+    }
+
+    /**
+     * Save variation quantity step field
+     */
+    public function save_variation_quantity_step_field($variation_id, $loop) {
+        if (isset($_POST['_minimum_quantity_step'][$loop])) {
+            $step = absint($_POST['_minimum_quantity_step'][$loop]);
+            update_post_meta($variation_id, '_minimum_quantity_step', $step);
+        }
     }
 
     /**
