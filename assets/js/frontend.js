@@ -78,7 +78,7 @@
             if ($form.length) {
                 // Check if notice container already exists
                 if ($form.find('.wcmqs-notice-container').length === 0) {
-                    this.noticeContainer = $('<div class="wcmqs-notice-container woocommerce-error" style="display:none;"></div>');
+                    this.noticeContainer = $('<div class="wcmqs-notice-container woocommerce-info" style="display:none;"></div>');
                     $form.prepend(this.noticeContainer);
                 } else {
                     this.noticeContainer = $form.find('.wcmqs-notice-container');
@@ -176,22 +176,14 @@
             var quantity = parseInt($input.val()) || 1;
             var self = this;
 
-            // Validate the quantity
-            var isValid = this.validateQuantity($input);
+            // Hide any existing error messages (since user is adjusting)
+            this.hideNotice();
 
-            if (isValid) {
-                // Hide any error messages
-                this.hideNotice();
-
-                // If quantity is valid and is a multiple of step, update the step attribute
-                // This ensures subsequent increments/decrements follow the step
-                if (quantity % this.currentStep === 0 && quantity >= this.currentStep) {
-                    // Dynamically update step after user selects valid quantity
-                    $input.attr('step', this.currentStep);
-                }
-            } else {
-                // Show error message
-                this.showNotice(wcMinQtyStep.i18n.error_message);
+            // If quantity is valid and is a multiple of step, update the step attribute
+            // This ensures subsequent increments/decrements follow the step
+            if (quantity % this.currentStep === 0 && quantity >= this.currentStep) {
+                // Dynamically update step after user selects valid quantity
+                $input.attr('step', this.currentStep);
             }
         },
 

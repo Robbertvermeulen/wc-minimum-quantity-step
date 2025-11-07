@@ -131,9 +131,10 @@ class WC_Minimum_Quantity_Step {
                 'type'        => 'number',
                 'custom_attributes' => array(
                     'step' => '1',
-                    'min'  => '1'
+                    'min'  => '0'
                 ),
-                'value'       => get_post_meta($post->ID, '_minimum_quantity_step', true)
+                'value'       => get_post_meta($post->ID, '_minimum_quantity_step', true),
+                'placeholder' => '1'
             )
         );
 
@@ -167,9 +168,10 @@ class WC_Minimum_Quantity_Step {
                 'type'          => 'number',
                 'value'         => $step_value,
                 'wrapper_class' => 'form-row form-row-full',
+                'placeholder'   => '1',
                 'custom_attributes' => array(
                     'step' => '1',
-                    'min'  => '1'
+                    'min'  => '0'
                 )
             )
         );
