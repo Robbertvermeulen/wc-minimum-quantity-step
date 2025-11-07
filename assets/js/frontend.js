@@ -23,6 +23,11 @@
         currentProductId: null,
 
         /**
+         * Previous quantity value for direction detection
+         */
+        previousQuantity: 1,
+
+        /**
          * Quantity input selector - works with most WooCommerce themes
          */
         quantityInputSelector: 'input.qty, input[name="quantity"]',
@@ -67,6 +72,12 @@
 
             // Initialize quantity input
             this.initQuantityInput();
+
+            // Store initial quantity as previous
+            var $quantityInput = $(this.quantityInputSelector);
+            if ($quantityInput.length) {
+                this.previousQuantity = parseInt($quantityInput.val()) || 1;
+            }
         },
 
         /**
@@ -145,6 +156,12 @@
                     // Re-initialize quantity input
                     self.initQuantityInput();
 
+                    // Update previous quantity to current value
+                    var $quantityInput = $(self.quantityInputSelector);
+                    if ($quantityInput.length) {
+                        self.previousQuantity = parseInt($quantityInput.val()) || 1;
+                    }
+
                     // Hide any existing notices
                     self.hideNotice();
                 }
@@ -154,6 +171,13 @@
             $(document).on('reset_data', function() {
                 self.currentStep = parseInt(wcMinQtyStep.step) || 1;
                 self.initQuantityInput();
+
+                // Update previous quantity to current value
+                var $quantityInput = $(self.quantityInputSelector);
+                if ($quantityInput.length) {
+                    self.previousQuantity = parseInt($quantityInput.val()) || 1;
+                }
+
                 self.hideNotice();
             });
 
@@ -184,25 +208,52 @@
 
             // Auto-snap to nearest valid quantity based on step
             if (this.currentStep > 1) {
-                var nearestValid = this.getNearestValidQuantity(quantity);
+                // Determine direction based on previous value
+                var direction = quantity > this.previousQuantity ? 'up' :
+                               quantity < this.previousQuantity ? 'down' : 'nearest';
+
+                var nearestValid = this.getNearestValidQuantity(quantity, direction);
 
                 // Only update if different to avoid cursor jumping on manual typing
                 if (quantity !== nearestValid) {
                     $input.val(nearestValid);
+                    // Update previous quantity to the snapped value
+                    this.previousQuantity = nearestValid;
+                } else {
+                    // Update previous quantity even if not changed
+                    this.previousQuantity = quantity;
                 }
+            } else {
+                // No step restriction, just track the value
+                this.previousQuantity = quantity;
             }
         },
 
         /**
-         * Get nearest valid quantity based on step
+         * Get nearest valid quantity based on step and direction
+         *
+         * @param {number} quantity - The current quantity
+         * @param {string} direction - 'up', 'down', or 'nearest'
          */
-        getNearestValidQuantity: function(quantity) {
+        getNearestValidQuantity: function(quantity, direction) {
             if (this.currentStep <= 1) {
                 return quantity;
             }
 
-            // Round to nearest multiple of step
-            var nearestValid = Math.round(quantity / this.currentStep) * this.currentStep;
+            direction = direction || 'nearest';
+            var nearestValid;
+
+            // Round based on direction
+            if (direction === 'up') {
+                // Round up to next valid multiple
+                nearestValid = Math.ceil(quantity / this.currentStep) * this.currentStep;
+            } else if (direction === 'down') {
+                // Round down to previous valid multiple
+                nearestValid = Math.floor(quantity / this.currentStep) * this.currentStep;
+            } else {
+                // Round to nearest multiple (default)
+                nearestValid = Math.round(quantity / this.currentStep) * this.currentStep;
+            }
 
             // Ensure minimum is at least the step value
             if (nearestValid < this.currentStep) {
