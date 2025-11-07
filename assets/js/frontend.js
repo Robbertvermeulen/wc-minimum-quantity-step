@@ -93,8 +93,8 @@
             var $quantityInput = $(this.quantityInputSelector);
 
             if ($quantityInput.length) {
-                // Remove step attribute to prevent HTML5 validation
-                $quantityInput.removeAttr('step');
+                // Set step to 'any' to prevent HTML5 validation
+                $quantityInput.attr('step', 'any');
 
                 // Set inputmode to numeric for better mobile experience
                 $quantityInput.attr('inputmode', 'numeric');
@@ -173,18 +173,12 @@
          * Handle quantity input change
          */
         handleQuantityChange: function($input) {
-            var quantity = parseInt($input.val()) || 1;
-            var self = this;
-
             // Hide any existing error messages (since user is adjusting)
             this.hideNotice();
 
-            // If quantity is valid and is a multiple of step, update the step attribute
-            // This ensures subsequent increments/decrements follow the step
-            if (quantity % this.currentStep === 0 && quantity >= this.currentStep) {
-                // Dynamically update step after user selects valid quantity
-                $input.attr('step', this.currentStep);
-            }
+            // Keep step="any" to prevent HTML5 validation interference
+            // All validation is handled purely in JavaScript
+            $input.attr('step', 'any');
         },
 
         /**
