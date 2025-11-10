@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.0.6');
+define('WC_MIN_QTY_STEP_VERSION', '1.0.7');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -174,6 +174,20 @@ class WC_Minimum_Quantity_Step {
             )
         );
 
+        // Apply to all variations checkbox (only for variable products)
+        $product = wc_get_product($post->ID);
+        if ($product && $product->is_type('variable')) {
+            woocommerce_wp_checkbox(
+                array(
+                    'id'          => '_apply_restrictions_to_variations',
+                    'label'       => __('Apply to all variations', 'wc-minimum-quantity-step'),
+                    'description' => __('When enabled, all variations will use the above quantity restrictions instead of their individual settings.', 'wc-minimum-quantity-step'),
+                    'wrapper_class' => 'show_if_variable',
+                    'value'       => get_post_meta($post->ID, '_apply_restrictions_to_variations', true)
+                )
+            );
+        }
+
         echo '</div>';
     }
 
@@ -188,6 +202,10 @@ class WC_Minimum_Quantity_Step {
         // Save minimum
         $min = isset($_POST['_minimum_quantity']) ? absint($_POST['_minimum_quantity']) : '';
         update_post_meta($post_id, '_minimum_quantity', $min);
+
+        // Save checkbox for applying to variations
+        $apply_to_variations = isset($_POST['_apply_restrictions_to_variations']) ? 'yes' : 'no';
+        update_post_meta($post_id, '_apply_restrictions_to_variations', $apply_to_variations);
 
         // Save maximum
         $max = isset($_POST['_maximum_quantity']) ? absint($_POST['_maximum_quantity']) : '';
@@ -289,24 +307,69 @@ class WC_Minimum_Quantity_Step {
 
     /**
      * Get quantity step for a product
+     * If it's a variation and parent has "apply to variations" enabled, use parent value
      */
     public function get_product_quantity_step($product_id) {
+        // Check if this is a variation and if parent wants to apply restrictions
+        $product = wc_get_product($product_id);
+        if ($product && $product->is_type('variation')) {
+            $parent_id = $product->get_parent_id();
+            $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+            if ($apply_to_variations === 'yes') {
+                // Use parent value
+                $step = get_post_meta($parent_id, '_minimum_quantity_step', true);
+                return !empty($step) && $step > 1 ? absint($step) : 1;
+            }
+        }
+
+        // Use product's own value
         $step = get_post_meta($product_id, '_minimum_quantity_step', true);
         return !empty($step) && $step > 1 ? absint($step) : 1;
     }
 
     /**
      * Get minimum quantity for a product
+     * If it's a variation and parent has "apply to variations" enabled, use parent value
      */
     public function get_product_minimum_quantity($product_id) {
+        // Check if this is a variation and if parent wants to apply restrictions
+        $product = wc_get_product($product_id);
+        if ($product && $product->is_type('variation')) {
+            $parent_id = $product->get_parent_id();
+            $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+            if ($apply_to_variations === 'yes') {
+                // Use parent value
+                $min = get_post_meta($parent_id, '_minimum_quantity', true);
+                return !empty($min) && $min > 0 ? absint($min) : 0;
+            }
+        }
+
+        // Use product's own value
         $min = get_post_meta($product_id, '_minimum_quantity', true);
         return !empty($min) && $min > 0 ? absint($min) : 0;
     }
 
     /**
      * Get maximum quantity for a product
+     * If it's a variation and parent has "apply to variations" enabled, use parent value
      */
     public function get_product_maximum_quantity($product_id) {
+        // Check if this is a variation and if parent wants to apply restrictions
+        $product = wc_get_product($product_id);
+        if ($product && $product->is_type('variation')) {
+            $parent_id = $product->get_parent_id();
+            $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+            if ($apply_to_variations === 'yes') {
+                // Use parent value
+                $max = get_post_meta($parent_id, '_maximum_quantity', true);
+                return !empty($max) && $max > 0 ? absint($max) : 0;
+            }
+        }
+
+        // Use product's own value
         $max = get_post_meta($product_id, '_maximum_quantity', true);
         return !empty($max) && $max > 0 ? absint($max) : 0;
     }
