@@ -1,0 +1,86 @@
+# English translation for WooCommerce Minimum Quantity Step
+# Copyright (C) 2024 Robbert Vermeulen
+# This file is distributed under the same license as the WooCommerce Minimum Quantity Step plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Minimum Quantity Step 1.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/robbertvermeulen/wc-minimum-quantity-step\n"
+"POT-Creation-Date: 2024-11-10 12:00+0000\n"
+"PO-Revision-Date: 2024-11-10 12:00+0000\n"
+"Last-Translator: Robbert Vermeulen\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Manual\n"
+
+msgid "WooCommerce Minimum Quantity Step vereist dat WooCommerce geïnstalleerd en actief is."
+msgstr "WooCommerce Minimum Quantity Step requires WooCommerce to be installed and active."
+
+msgid "Minimale Aantal Stappen"
+msgstr "Minimum Quantity Step"
+
+msgid "Klanten kunnen alleen bestellen in veelvouden van dit getal (bijv. 2 betekent 2, 4, 6, 8...). Laat leeg of 1 voor geen beperking."
+msgstr "Customers can only order in multiples of this number (e.g., 2 means 2, 4, 6, 8...). Leave empty or 1 for no restriction."
+
+msgid "Minimaal Aantal"
+msgstr "Minimum Quantity"
+
+msgid "Minimaal aantal stuks dat besteld moet worden. Laat leeg voor geen minimum."
+msgstr "Minimum number of items that must be ordered. Leave empty for no minimum."
+
+msgid "Maximaal Aantal"
+msgstr "Maximum Quantity"
+
+msgid "Maximaal aantal toegestaan."
+msgstr "Maximum number allowed."
+
+msgid "Toepassen op alle variaties"
+msgstr "Apply to all variations"
+
+msgid "Wanneer actief gebruiken alle variaties bovenstaande aantal beperkingen in plaats van hun eigen instellingen."
+msgstr "When enabled, all variations will use the above quantity restrictions instead of their individual settings."
+
+msgid "Dit product moet besteld worden in veelvouden van %d."
+msgstr "This product must be ordered in multiples of %d."
+
+msgid "Dit product vereist minimaal %d stuks."
+msgstr "This product requires a minimum of %d items."
+
+msgid "Dit product staat maximaal %d stuks toe."
+msgstr "This product allows a maximum of %d items."
+
+msgid "\"%s\" moet besteld worden in veelvouden van %d."
+msgstr "\"%s\" must be ordered in multiples of %d."
+
+msgid "\"%s\" vereist minimaal %d stuks."
+msgstr "\"%s\" requires a minimum of %d items."
+
+msgid "\"%s\" staat maximaal %d stuks toe."
+msgstr "\"%s\" allows a maximum of %d items."
+
+msgid "\"%s\" moet besteld worden in veelvouden van %d. Update je winkelwagen."
+msgstr "\"%s\" must be ordered in multiples of %d. Please update your cart."
+
+msgid "\"%s\" vereist minimaal %d stuks. Update je winkelwagen."
+msgstr "\"%s\" requires a minimum of %d items. Please update your cart."
+
+msgid "\"%s\" staat maximaal %d stuks toe. Update je winkelwagen."
+msgstr "\"%s\" allows a maximum of %d items. Please update your cart."
+
+msgid "Min. Aantal Stap"
+msgstr "Min. Quantity Step"
+
+msgid "Bestellen in veelvouden (bijv. 2 = 2, 4, 6...)."
+msgstr "Order in multiples (e.g., 2 = 2, 4, 6...)."
+
+msgid "Min. Aantal"
+msgstr "Min. Quantity"
+
+msgid "Minimaal aantal vereist."
+msgstr "Minimum number required."
+
+msgid "Max. Aantal"
+msgstr "Max. Quantity"

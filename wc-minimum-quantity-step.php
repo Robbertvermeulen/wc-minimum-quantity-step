@@ -69,6 +69,9 @@ class WC_Minimum_Quantity_Step {
      * Initialize plugin
      */
     public function init() {
+        // Load text domain on init hook for translations
+        add_action('init', array($this, 'load_textdomain'));
+
         // Check if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
@@ -95,6 +98,13 @@ class WC_Minimum_Quantity_Step {
         // AJAX endpoint for getting step value
         add_action('wp_ajax_get_quantity_step', array($this, 'ajax_get_quantity_step'));
         add_action('wp_ajax_nopriv_get_quantity_step', array($this, 'ajax_get_quantity_step'));
+    }
+
+    /**
+     * Load plugin text domain for translations
+     */
+    public function load_textdomain() {
+        load_plugin_textdomain('wc-minimum-quantity-step', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     /**
@@ -420,9 +430,9 @@ class WC_Minimum_Quantity_Step {
                 'max' => $max,
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'i18n' => array(
-                    'error_step' => 'Dit product moet besteld worden in veelvouden van %d.',
-                    'error_min' => 'Dit product vereist minimaal %d stuks.',
-                    'error_max' => 'Dit product staat maximaal %d stuks toe.'
+                    'error_step' => __('Dit product moet besteld worden in veelvouden van %d.', 'wc-minimum-quantity-step'),
+                    'error_min' => __('Dit product vereist minimaal %d stuks.', 'wc-minimum-quantity-step'),
+                    'error_max' => __('Dit product staat maximaal %d stuks toe.', 'wc-minimum-quantity-step')
                 )
             ));
         }
@@ -465,7 +475,7 @@ class WC_Minimum_Quantity_Step {
         if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    '"%s" moet besteld worden in veelvouden van %d.',
+                    __('"%s" moet besteld worden in veelvouden van %d.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $step
                 ),
@@ -478,7 +488,7 @@ class WC_Minimum_Quantity_Step {
         if ($min > 0 && $quantity < $min) {
             wc_add_notice(
                 sprintf(
-                    '"%s" vereist minimaal %d stuks.',
+                    __('"%s" vereist minimaal %d stuks.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $min
                 ),
@@ -491,7 +501,7 @@ class WC_Minimum_Quantity_Step {
         if ($max > 0 && $quantity > $max) {
             wc_add_notice(
                 sprintf(
-                    '"%s" staat maximaal %d stuks toe.',
+                    __('"%s" staat maximaal %d stuks toe.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $max
                 ),
@@ -524,7 +534,7 @@ class WC_Minimum_Quantity_Step {
         if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    '"%s" moet besteld worden in veelvouden van %d.',
+                    __('"%s" moet besteld worden in veelvouden van %d.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $step
                 ),
@@ -537,7 +547,7 @@ class WC_Minimum_Quantity_Step {
         if ($min > 0 && $quantity < $min) {
             wc_add_notice(
                 sprintf(
-                    '"%s" vereist minimaal %d stuks.',
+                    __('"%s" vereist minimaal %d stuks.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $min
                 ),
@@ -550,7 +560,7 @@ class WC_Minimum_Quantity_Step {
         if ($max > 0 && $quantity > $max) {
             wc_add_notice(
                 sprintf(
-                    '"%s" staat maximaal %d stuks toe.',
+                    __('"%s" staat maximaal %d stuks toe.', 'wc-minimum-quantity-step'),
                     $product_name,
                     $max
                 ),
@@ -592,7 +602,7 @@ class WC_Minimum_Quantity_Step {
             if ($step > 1 && $quantity % $step !== 0) {
                 wc_add_notice(
                     sprintf(
-                        '"%s" moet besteld worden in veelvouden van %d. Update je winkelwagen.',
+                        __('"%s" moet besteld worden in veelvouden van %d. Update je winkelwagen.', 'wc-minimum-quantity-step'),
                         $product_name,
                         $step
                     ),
@@ -604,7 +614,7 @@ class WC_Minimum_Quantity_Step {
             if ($min > 0 && $quantity < $min) {
                 wc_add_notice(
                     sprintf(
-                        '"%s" vereist minimaal %d stuks. Update je winkelwagen.',
+                        __('"%s" vereist minimaal %d stuks. Update je winkelwagen.', 'wc-minimum-quantity-step'),
                         $product_name,
                         $min
                     ),
@@ -616,7 +626,7 @@ class WC_Minimum_Quantity_Step {
             if ($max > 0 && $quantity > $max) {
                 wc_add_notice(
                     sprintf(
-                        '"%s" staat maximaal %d stuks toe. Update je winkelwagen.',
+                        __('"%s" staat maximaal %d stuks toe. Update je winkelwagen.', 'wc-minimum-quantity-step'),
                         $product_name,
                         $max
                     ),
