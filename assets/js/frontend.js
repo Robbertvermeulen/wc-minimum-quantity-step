@@ -8,6 +8,13 @@
     'use strict';
 
     /**
+     * Simple sprintf implementation for string formatting
+     */
+    function sprintf(str, value) {
+        return str.replace('%d', value);
+    }
+
+    /**
      * Main quantity step handler
      */
     var WCMinimumQuantityStep = {
@@ -16,6 +23,16 @@
          * Current step value
          */
         currentStep: 1,
+
+        /**
+         * Current minimum quantity
+         */
+        currentMin: 0,
+
+        /**
+         * Current maximum quantity
+         */
+        currentMax: 0,
 
         /**
          * Current product ID
@@ -62,10 +79,12 @@
             }
 
             this.currentStep = parseInt(wcMinQtyStep.step) || 1;
+            this.currentMin = parseInt(wcMinQtyStep.min) || 0;
+            this.currentMax = parseInt(wcMinQtyStep.max) || 0;
             this.currentProductId = wcMinQtyStep.product_id;
 
-            // Only initialize if step is greater than 1
-            if (this.currentStep <= 1) {
+            // Only initialize if there are restrictions
+            if (this.currentStep <= 1 && this.currentMin <= 0 && this.currentMax <= 0) {
                 return;
             }
 
@@ -144,14 +163,15 @@
                 var $quantityInput = $(self.quantityInputSelector);
 
                 if ($quantityInput.length) {
-                    var isValid = self.validateQuantity($quantityInput);
+                    var validation = self.validateQuantity($quantityInput);
 
-                    if (!isValid) {
+                    if (!validation.valid) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
 
-                        // Show error message
-                        self.showNotice(wcMinQtyStep.i18n.error_message);
+                        // Show all error messages
+                        var errorMessage = validation.errors.join(' ');
+                        self.showNotice(errorMessage);
 
                         // Scroll to notice
                         self.scrollToNotice();
@@ -163,26 +183,29 @@
 
             // Handle variation changes (for variable products)
             $(document).on('found_variation', function(e, variation) {
-                if (variation.minimum_quantity_step) {
-                    self.currentStep = parseInt(variation.minimum_quantity_step);
+                // Update all restrictions from variation data
+                self.currentStep = parseInt(variation.minimum_quantity_step) || 1;
+                self.currentMin = parseInt(variation.minimum_quantity) || 0;
+                self.currentMax = parseInt(variation.maximum_quantity) || 0;
 
-                    // Re-initialize quantity input
-                    self.initQuantityInput();
+                // Re-initialize quantity input
+                self.initQuantityInput();
 
-                    // Update previous quantity to current value
-                    var $quantityInput = $(self.quantityInputSelector);
-                    if ($quantityInput.length) {
-                        self.previousQuantity = parseInt($quantityInput.val()) || 1;
-                    }
-
-                    // Hide any existing notices
-                    self.hideNotice();
+                // Update previous quantity to current value
+                var $quantityInput = $(self.quantityInputSelector);
+                if ($quantityInput.length) {
+                    self.previousQuantity = parseInt($quantityInput.val()) || 1;
                 }
+
+                // Hide any existing notices
+                self.hideNotice();
             });
 
             // Handle reset variations
             $(document).on('reset_data', function() {
                 self.currentStep = parseInt(wcMinQtyStep.step) || 1;
+                self.currentMin = parseInt(wcMinQtyStep.min) || 0;
+                self.currentMax = parseInt(wcMinQtyStep.max) || 0;
                 self.initQuantityInput();
 
                 // Update previous quantity to current value
@@ -245,6 +268,7 @@
 
         /**
          * Get nearest valid quantity based on step and direction
+         * Respects min/max boundaries
          *
          * @param {number} quantity - The current quantity
          * @param {string} direction - 'up', 'down', or 'nearest'
@@ -274,22 +298,48 @@
                 nearestValid = this.currentStep;
             }
 
+            // Respect minimum quantity boundary
+            if (this.currentMin > 0 && nearestValid < this.currentMin) {
+                // Find next valid multiple >= minimum
+                nearestValid = Math.ceil(this.currentMin / this.currentStep) * this.currentStep;
+            }
+
+            // Respect maximum quantity boundary
+            if (this.currentMax > 0 && nearestValid > this.currentMax) {
+                // Find previous valid multiple <= maximum
+                nearestValid = Math.floor(this.currentMax / this.currentStep) * this.currentStep;
+            }
+
             return nearestValid;
         },
 
         /**
          * Validate quantity
+         * Returns object with {valid: boolean, errors: []}
          */
         validateQuantity: function($input) {
             var quantity = parseInt($input.val()) || 1;
+            var errors = [];
 
-            // If step is 1 or less, always valid
-            if (this.currentStep <= 1) {
-                return true;
+            // Check step (multiples)
+            if (this.currentStep > 1 && quantity % this.currentStep !== 0) {
+                errors.push(sprintf(wcMinQtyStep.i18n.error_step, this.currentStep));
             }
 
-            // Check if quantity is a multiple of step
-            return quantity % this.currentStep === 0;
+            // Check minimum
+            if (this.currentMin > 0 && quantity < this.currentMin) {
+                errors.push(sprintf(wcMinQtyStep.i18n.error_min, this.currentMin));
+            }
+
+            // Check maximum
+            if (this.currentMax > 0 && quantity > this.currentMax) {
+                errors.push(sprintf(wcMinQtyStep.i18n.error_max, this.currentMax));
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors: errors
+            };
         },
 
         /**

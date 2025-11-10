@@ -2,8 +2,8 @@
 /**
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
- * Description: Set minimum quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.0.3
+ * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
+ * Version: 1.0.4
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.0.3');
+define('WC_MIN_QTY_STEP_VERSION', '1.0.4');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -111,7 +111,7 @@ class WC_Minimum_Quantity_Step {
     }
 
     /**
-     * Add quantity step field to product inventory tab
+     * Add quantity restriction fields to product inventory tab
      */
     public function add_quantity_step_field() {
         global $post;
@@ -122,12 +122,13 @@ class WC_Minimum_Quantity_Step {
 
         echo '<div class="options_group show_if_simple show_if_variable">';
 
+        // Minimum Quantity Step
         woocommerce_wp_text_input(
             array(
                 'id'          => '_minimum_quantity_step',
                 'label'       => __('Minimum Quantity Step', 'wc-minimum-quantity-step'),
                 'desc_tip'    => true,
-                'description' => __('Set the minimum quantity step for this product (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions.', 'wc-minimum-quantity-step'),
+                'description' => __('Customers can only order in multiples of this number (e.g., 2 means 2, 4, 6, 8...). Leave empty or 1 for no restriction.', 'wc-minimum-quantity-step'),
                 'type'        => 'number',
                 'custom_attributes' => array(
                     'step' => '1',
@@ -138,36 +139,79 @@ class WC_Minimum_Quantity_Step {
             )
         );
 
+        // Minimum Quantity
+        woocommerce_wp_text_input(
+            array(
+                'id'          => '_minimum_quantity',
+                'label'       => __('Minimum Quantity', 'wc-minimum-quantity-step'),
+                'desc_tip'    => true,
+                'description' => __('Minimum number of items that must be ordered. Leave empty for no minimum.', 'wc-minimum-quantity-step'),
+                'type'        => 'number',
+                'custom_attributes' => array(
+                    'step' => '1',
+                    'min'  => '1'
+                ),
+                'value'       => get_post_meta($post->ID, '_minimum_quantity', true),
+                'placeholder' => ''
+            )
+        );
+
+        // Maximum Quantity
+        woocommerce_wp_text_input(
+            array(
+                'id'          => '_maximum_quantity',
+                'label'       => __('Maximum Quantity', 'wc-minimum-quantity-step'),
+                'desc_tip'    => true,
+                'description' => __('Maximum number of items that can be ordered. Leave empty for no maximum.', 'wc-minimum-quantity-step'),
+                'type'        => 'number',
+                'custom_attributes' => array(
+                    'step' => '1',
+                    'min'  => '1'
+                ),
+                'value'       => get_post_meta($post->ID, '_maximum_quantity', true),
+                'placeholder' => ''
+            )
+        );
+
         echo '</div>';
     }
 
     /**
-     * Save quantity step field
+     * Save quantity restriction fields
      */
     public function save_quantity_step_field($post_id) {
+        // Save step
         $step = isset($_POST['_minimum_quantity_step']) ? absint($_POST['_minimum_quantity_step']) : '';
         update_post_meta($post_id, '_minimum_quantity_step', $step);
+
+        // Save minimum
+        $min = isset($_POST['_minimum_quantity']) ? absint($_POST['_minimum_quantity']) : '';
+        update_post_meta($post_id, '_minimum_quantity', $min);
+
+        // Save maximum
+        $max = isset($_POST['_maximum_quantity']) ? absint($_POST['_maximum_quantity']) : '';
+        update_post_meta($post_id, '_maximum_quantity', $max);
     }
 
     /**
-     * Add quantity step field to variation
+     * Add quantity restriction fields to variation
      */
     public function add_variation_quantity_step_field($loop, $variation_data, $variation) {
         $variation_id = $variation->ID;
-        $step_value = get_post_meta($variation_id, '_minimum_quantity_step', true);
 
         echo '<div class="form-row form-row-full">';
 
+        // Step
         woocommerce_wp_text_input(
             array(
                 'id'            => '_minimum_quantity_step_' . $loop,
                 'name'          => '_minimum_quantity_step[' . $loop . ']',
-                'label'         => __('Minimum Quantity Step', 'wc-minimum-quantity-step'),
+                'label'         => __('Min. Quantity Step', 'wc-minimum-quantity-step'),
                 'desc_tip'      => true,
-                'description'   => __('Set the minimum quantity step for this variation (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions.', 'wc-minimum-quantity-step'),
+                'description'   => __('Order in multiples (e.g., 2 = 2, 4, 6...).', 'wc-minimum-quantity-step'),
                 'type'          => 'number',
-                'value'         => $step_value,
-                'wrapper_class' => 'form-row form-row-full',
+                'value'         => get_post_meta($variation_id, '_minimum_quantity_step', true),
+                'wrapper_class' => 'form-row form-row-first',
                 'placeholder'   => '1',
                 'custom_attributes' => array(
                     'step' => '1',
@@ -176,16 +220,69 @@ class WC_Minimum_Quantity_Step {
             )
         );
 
+        // Minimum
+        woocommerce_wp_text_input(
+            array(
+                'id'            => '_minimum_quantity_' . $loop,
+                'name'          => '_minimum_quantity[' . $loop . ']',
+                'label'         => __('Min. Quantity', 'wc-minimum-quantity-step'),
+                'desc_tip'      => true,
+                'description'   => __('Minimum number required.', 'wc-minimum-quantity-step'),
+                'type'          => 'number',
+                'value'         => get_post_meta($variation_id, '_minimum_quantity', true),
+                'wrapper_class' => 'form-row form-row-last',
+                'placeholder'   => '',
+                'custom_attributes' => array(
+                    'step' => '1',
+                    'min'  => '1'
+                )
+            )
+        );
+
+        echo '</div><div class="form-row form-row-full">';
+
+        // Maximum
+        woocommerce_wp_text_input(
+            array(
+                'id'            => '_maximum_quantity_' . $loop,
+                'name'          => '_maximum_quantity[' . $loop . ']',
+                'label'         => __('Max. Quantity', 'wc-minimum-quantity-step'),
+                'desc_tip'      => true,
+                'description'   => __('Maximum number allowed.', 'wc-minimum-quantity-step'),
+                'type'          => 'number',
+                'value'         => get_post_meta($variation_id, '_maximum_quantity', true),
+                'wrapper_class' => 'form-row form-row-full',
+                'placeholder'   => '',
+                'custom_attributes' => array(
+                    'step' => '1',
+                    'min'  => '1'
+                )
+            )
+        );
+
         echo '</div>';
     }
 
     /**
-     * Save variation quantity step field
+     * Save variation quantity restriction fields
      */
     public function save_variation_quantity_step_field($variation_id, $loop) {
+        // Save step
         if (isset($_POST['_minimum_quantity_step'][$loop])) {
             $step = absint($_POST['_minimum_quantity_step'][$loop]);
             update_post_meta($variation_id, '_minimum_quantity_step', $step);
+        }
+
+        // Save minimum
+        if (isset($_POST['_minimum_quantity'][$loop])) {
+            $min = absint($_POST['_minimum_quantity'][$loop]);
+            update_post_meta($variation_id, '_minimum_quantity', $min);
+        }
+
+        // Save maximum
+        if (isset($_POST['_maximum_quantity'][$loop])) {
+            $max = absint($_POST['_maximum_quantity'][$loop]);
+            update_post_meta($variation_id, '_maximum_quantity', $max);
         }
     }
 
@@ -198,11 +295,29 @@ class WC_Minimum_Quantity_Step {
     }
 
     /**
-     * Add quantity step to variation data
+     * Get minimum quantity for a product
+     */
+    public function get_product_minimum_quantity($product_id) {
+        $min = get_post_meta($product_id, '_minimum_quantity', true);
+        return !empty($min) && $min > 0 ? absint($min) : 0;
+    }
+
+    /**
+     * Get maximum quantity for a product
+     */
+    public function get_product_maximum_quantity($product_id) {
+        $max = get_post_meta($product_id, '_maximum_quantity', true);
+        return !empty($max) && $max > 0 ? absint($max) : 0;
+    }
+
+    /**
+     * Add quantity restrictions to variation data
      */
     public function add_variation_quantity_step($variation_data, $product, $variation) {
-        $step = $this->get_product_quantity_step($variation->get_id());
-        $variation_data['minimum_quantity_step'] = $step;
+        $variation_id = $variation->get_id();
+        $variation_data['minimum_quantity_step'] = $this->get_product_quantity_step($variation_id);
+        $variation_data['minimum_quantity'] = $this->get_product_minimum_quantity($variation_id);
+        $variation_data['maximum_quantity'] = $this->get_product_maximum_quantity($variation_id);
         return $variation_data;
     }
 
@@ -232,19 +347,21 @@ class WC_Minimum_Quantity_Step {
             global $post;
             $product = wc_get_product($post->ID);
 
-            // Prepare data for JS
+            // Get all quantity restrictions
             $step = $this->get_product_quantity_step($post->ID);
+            $min = $this->get_product_minimum_quantity($post->ID);
+            $max = $this->get_product_maximum_quantity($post->ID);
 
             wp_localize_script('wc-minimum-quantity-step', 'wcMinQtyStep', array(
                 'product_id' => $post->ID,
                 'step' => $step,
+                'min' => $min,
+                'max' => $max,
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'i18n' => array(
-                    'error_message' => sprintf(
-                        __('This product must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
-                        $step
-                    ),
-                    'error_message_dynamic' => __('This product must be ordered in multiples of %d.', 'wc-minimum-quantity-step')
+                    'error_step' => __('This product must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
+                    'error_min' => __('This product requires a minimum of %d items.', 'wc-minimum-quantity-step'),
+                    'error_max' => __('This product allows a maximum of %d items.', 'wc-minimum-quantity-step')
                 )
             ));
         }
@@ -276,23 +393,47 @@ class WC_Minimum_Quantity_Step {
      */
     public function validate_quantity_step($passed, $product_id, $quantity) {
         $step = $this->get_product_quantity_step($product_id);
+        $min = $this->get_product_minimum_quantity($product_id);
+        $max = $this->get_product_maximum_quantity($product_id);
+        $product_name = get_the_title($product_id);
 
-        // If step is 1 or empty, no validation needed
-        if ($step <= 1) {
-            return $passed;
-        }
-
-        // Check if quantity is a multiple of step
-        if ($quantity % $step !== 0) {
+        // Check step (multiples)
+        if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" must be ordered in multiples of %d. Please adjust the quantity.', 'wc-minimum-quantity-step'),
-                    get_the_title($product_id),
+                    __('"%s" must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
+                    $product_name,
                     $step
                 ),
                 'error'
             );
-            return false;
+            $passed = false;
+        }
+
+        // Check minimum
+        if ($min > 0 && $quantity < $min) {
+            wc_add_notice(
+                sprintf(
+                    __('"%s" requires a minimum of %d items.', 'wc-minimum-quantity-step'),
+                    $product_name,
+                    $min
+                ),
+                'error'
+            );
+            $passed = false;
+        }
+
+        // Check maximum
+        if ($max > 0 && $quantity > $max) {
+            wc_add_notice(
+                sprintf(
+                    __('"%s" allows a maximum of %d items.', 'wc-minimum-quantity-step'),
+                    $product_name,
+                    $max
+                ),
+                'error'
+            );
+            $passed = false;
         }
 
         return $passed;
@@ -304,23 +445,47 @@ class WC_Minimum_Quantity_Step {
     public function validate_cart_quantity_step($passed, $cart_item_key, $values, $quantity) {
         $product_id = $values['product_id'];
         $step = $this->get_product_quantity_step($product_id);
+        $min = $this->get_product_minimum_quantity($product_id);
+        $max = $this->get_product_maximum_quantity($product_id);
+        $product_name = get_the_title($product_id);
 
-        // If step is 1 or empty, no validation needed
-        if ($step <= 1) {
-            return $passed;
-        }
-
-        // Check if quantity is a multiple of step
-        if ($quantity % $step !== 0) {
+        // Check step (multiples)
+        if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" must be ordered in multiples of %d. Please adjust the quantity.', 'wc-minimum-quantity-step'),
-                    get_the_title($product_id),
+                    __('"%s" must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
+                    $product_name,
                     $step
                 ),
                 'error'
             );
-            return false;
+            $passed = false;
+        }
+
+        // Check minimum
+        if ($min > 0 && $quantity < $min) {
+            wc_add_notice(
+                sprintf(
+                    __('"%s" requires a minimum of %d items.', 'wc-minimum-quantity-step'),
+                    $product_name,
+                    $min
+                ),
+                'error'
+            );
+            $passed = false;
+        }
+
+        // Check maximum
+        if ($max > 0 && $quantity > $max) {
+            wc_add_notice(
+                sprintf(
+                    __('"%s" allows a maximum of %d items.', 'wc-minimum-quantity-step'),
+                    $product_name,
+                    $max
+                ),
+                'error'
+            );
+            $passed = false;
         }
 
         return $passed;

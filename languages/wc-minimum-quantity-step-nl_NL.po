@@ -3,10 +3,10 @@
 # This file is distributed under the same license as the WooCommerce Minimum Quantity Step plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Minimum Quantity Step 1.0.0\n"
+"Project-Id-Version: WooCommerce Minimum Quantity Step 1.0.4\n"
 "Report-Msgid-Bugs-To: https://github.com/robbertvermeulen/wc-minimum-quantity-step\n"
-"POT-Creation-Date: 2024-11-07 12:00+0000\n"
-"PO-Revision-Date: 2024-11-07 12:00+0000\n"
+"POT-Creation-Date: 2024-11-10 12:00+0000\n"
+"PO-Revision-Date: 2024-11-10 12:00+0000\n"
 "Last-Translator: Robbert Vermeulen\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -20,25 +20,80 @@ msgstr ""
 msgid "WooCommerce Minimum Quantity Step requires WooCommerce to be installed and active."
 msgstr "WooCommerce Minimum Quantity Step vereist dat WooCommerce geïnstalleerd en actief is."
 
-#: wc-minimum-quantity-step.php:114
-#: wc-minimum-quantity-step.php:151
+#: wc-minimum-quantity-step.php:129
+#: wc-minimum-quantity-step.php:209
 msgid "Minimum Quantity Step"
 msgstr "Minimale Aantal Stappen"
 
-#: wc-minimum-quantity-step.php:116
-msgid "Set the minimum quantity step for this product (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions."
-msgstr "Stel de minimale aantal stappen in voor dit product (bijv. 2 betekent dat klanten alleen in veelvouden van 2 kunnen bestellen). Laat leeg of stel in op 1 voor geen beperkingen."
+#: wc-minimum-quantity-step.php:131
+msgid "Customers can only order in multiples of this number (e.g., 2 means 2, 4, 6, 8...). Leave empty or 1 for no restriction."
+msgstr "Klanten kunnen alleen bestellen in veelvouden van dit getal (bijv. 2 betekent 2, 4, 6, 8...). Laat leeg of 1 voor geen beperking."
 
-#: wc-minimum-quantity-step.php:153
-msgid "Set the minimum quantity step for this variation (e.g., 2 means customers can only order in multiples of 2). Leave empty or set to 1 for no restrictions."
-msgstr "Stel de minimale aantal stappen in voor deze variatie (bijv. 2 betekent dat klanten alleen in veelvouden van 2 kunnen bestellen). Laat leeg of stel in op 1 voor geen beperkingen."
+#: wc-minimum-quantity-step.php:146
+#: wc-minimum-quantity-step.php:228
+msgid "Minimum Quantity"
+msgstr "Minimaal Aantal"
 
-#: wc-minimum-quantity-step.php:185
-#: wc-minimum-quantity-step.php:188
+#: wc-minimum-quantity-step.php:148
+msgid "Minimum number of items that must be ordered. Leave empty for no minimum."
+msgstr "Minimaal aantal stuks dat besteld moet worden. Laat leeg voor geen minimum."
+
+#: wc-minimum-quantity-step.php:163
+#: wc-minimum-quantity-step.php:249
+msgid "Maximum Quantity"
+msgstr "Maximaal Aantal"
+
+#: wc-minimum-quantity-step.php:165
+msgid "Maximum number of items that can be ordered. Leave empty for no maximum."
+msgstr "Maximaal aantal stuks dat besteld kan worden. Laat leeg voor geen maximum."
+
+#: wc-minimum-quantity-step.php:209
+msgid "Min. Quantity Step"
+msgstr "Min. Aantal Stap"
+
+#: wc-minimum-quantity-step.php:211
+msgid "Order in multiples (e.g., 2 = 2, 4, 6...)."
+msgstr "Bestellen in veelvouden (bijv. 2 = 2, 4, 6...)."
+
+#: wc-minimum-quantity-step.php:228
+msgid "Min. Quantity"
+msgstr "Min. Aantal"
+
+#: wc-minimum-quantity-step.php:230
+msgid "Minimum number required."
+msgstr "Minimaal aantal vereist."
+
+#: wc-minimum-quantity-step.php:249
+msgid "Max. Quantity"
+msgstr "Max. Aantal"
+
+#: wc-minimum-quantity-step.php:251
+msgid "Maximum number allowed."
+msgstr "Maximaal aantal toegestaan."
+
+#: wc-minimum-quantity-step.php:362
 msgid "This product must be ordered in multiples of %d."
 msgstr "Dit product moet besteld worden in veelvouden van %d."
 
-#: wc-minimum-quantity-step.php:230
-#: wc-minimum-quantity-step.php:257
-msgid "\"%s\" must be ordered in multiples of %d. Please adjust the quantity."
-msgstr "\"%s\" moet besteld worden in veelvouden van %d. Pas het aantal aan."
+#: wc-minimum-quantity-step.php:363
+msgid "This product requires a minimum of %d items."
+msgstr "Dit product vereist minimaal %d stuks."
+
+#: wc-minimum-quantity-step.php:364
+msgid "This product allows a maximum of %d items."
+msgstr "Dit product staat maximaal %d stuks toe."
+
+#: wc-minimum-quantity-step.php:404
+#: wc-minimum-quantity-step.php:456
+msgid "\"%s\" must be ordered in multiples of %d."
+msgstr "\"%s\" moet besteld worden in veelvouden van %d."
+
+#: wc-minimum-quantity-step.php:417
+#: wc-minimum-quantity-step.php:469
+msgid "\"%s\" requires a minimum of %d items."
+msgstr "\"%s\" vereist minimaal %d stuks."
+
+#: wc-minimum-quantity-step.php:430
+#: wc-minimum-quantity-step.php:482
+msgid "\"%s\" allows a maximum of %d items."
+msgstr "\"%s\" staat maximaal %d stuks toe."
