@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.0.9
+ * Version: 1.1.0
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.0.9');
+define('WC_MIN_QTY_STEP_VERSION', '1.1.0');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -69,9 +69,6 @@ class WC_Minimum_Quantity_Step {
      * Initialize plugin
      */
     public function init() {
-        // Load text domain on WordPress init hook for proper timing
-        add_action('init', array($this, 'load_textdomain'));
-
         // Check if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
@@ -98,13 +95,6 @@ class WC_Minimum_Quantity_Step {
         // AJAX endpoint for getting step value
         add_action('wp_ajax_get_quantity_step', array($this, 'ajax_get_quantity_step'));
         add_action('wp_ajax_nopriv_get_quantity_step', array($this, 'ajax_get_quantity_step'));
-    }
-
-    /**
-     * Load plugin text domain for translations
-     */
-    public function load_textdomain() {
-        load_plugin_textdomain('wc-minimum-quantity-step', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     /**
@@ -430,9 +420,9 @@ class WC_Minimum_Quantity_Step {
                 'max' => $max,
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'i18n' => array(
-                    'error_step' => __('This product must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
-                    'error_min' => __('This product requires a minimum of %d items.', 'wc-minimum-quantity-step'),
-                    'error_max' => __('This product allows a maximum of %d items.', 'wc-minimum-quantity-step')
+                    'error_step' => 'Dit product moet besteld worden in veelvouden van %d.',
+                    'error_min' => 'Dit product vereist minimaal %d stuks.',
+                    'error_max' => 'Dit product staat maximaal %d stuks toe.'
                 )
             ));
         }
@@ -475,7 +465,7 @@ class WC_Minimum_Quantity_Step {
         if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
+                    '"%s" moet besteld worden in veelvouden van %d.',
                     $product_name,
                     $step
                 ),
@@ -488,7 +478,7 @@ class WC_Minimum_Quantity_Step {
         if ($min > 0 && $quantity < $min) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" requires a minimum of %d items.', 'wc-minimum-quantity-step'),
+                    '"%s" vereist minimaal %d stuks.',
                     $product_name,
                     $min
                 ),
@@ -501,7 +491,7 @@ class WC_Minimum_Quantity_Step {
         if ($max > 0 && $quantity > $max) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" allows a maximum of %d items.', 'wc-minimum-quantity-step'),
+                    '"%s" staat maximaal %d stuks toe.',
                     $product_name,
                     $max
                 ),
@@ -534,7 +524,7 @@ class WC_Minimum_Quantity_Step {
         if ($step > 1 && $quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" must be ordered in multiples of %d.', 'wc-minimum-quantity-step'),
+                    '"%s" moet besteld worden in veelvouden van %d.',
                     $product_name,
                     $step
                 ),
@@ -547,7 +537,7 @@ class WC_Minimum_Quantity_Step {
         if ($min > 0 && $quantity < $min) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" requires a minimum of %d items.', 'wc-minimum-quantity-step'),
+                    '"%s" vereist minimaal %d stuks.',
                     $product_name,
                     $min
                 ),
@@ -560,7 +550,7 @@ class WC_Minimum_Quantity_Step {
         if ($max > 0 && $quantity > $max) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" allows a maximum of %d items.', 'wc-minimum-quantity-step'),
+                    '"%s" staat maximaal %d stuks toe.',
                     $product_name,
                     $max
                 ),
@@ -602,7 +592,7 @@ class WC_Minimum_Quantity_Step {
             if ($step > 1 && $quantity % $step !== 0) {
                 wc_add_notice(
                     sprintf(
-                        __('"%s" must be ordered in multiples of %d. Please update your cart.', 'wc-minimum-quantity-step'),
+                        '"%s" moet besteld worden in veelvouden van %d. Update je winkelwagen.',
                         $product_name,
                         $step
                     ),
@@ -614,7 +604,7 @@ class WC_Minimum_Quantity_Step {
             if ($min > 0 && $quantity < $min) {
                 wc_add_notice(
                     sprintf(
-                        __('"%s" requires a minimum of %d items. Please update your cart.', 'wc-minimum-quantity-step'),
+                        '"%s" vereist minimaal %d stuks. Update je winkelwagen.',
                         $product_name,
                         $min
                     ),
@@ -626,7 +616,7 @@ class WC_Minimum_Quantity_Step {
             if ($max > 0 && $quantity > $max) {
                 wc_add_notice(
                     sprintf(
-                        __('"%s" allows a maximum of %d items. Please update your cart.', 'wc-minimum-quantity-step'),
+                        '"%s" staat maximaal %d stuks toe. Update je winkelwagen.',
                         $product_name,
                         $max
                     ),
