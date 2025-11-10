@@ -65,9 +65,9 @@
         formSelector: 'form.cart',
 
         /**
-         * Notice container
+         * Validation message element
          */
-        noticeContainer: null,
+        validationMessage: null,
 
         /**
          * Initialize
@@ -88,8 +88,8 @@
                 return;
             }
 
-            // Create notice container
-            this.createNoticeContainer();
+            // Create validation message element
+            this.createValidationMessage();
 
             // Set up event handlers
             this.bindEvents();
@@ -105,18 +105,18 @@
         },
 
         /**
-         * Create notice container for validation messages
+         * Create validation message element
          */
-        createNoticeContainer: function() {
+        createValidationMessage: function() {
             var $form = $(this.formSelector);
 
             if ($form.length) {
-                // Check if notice container already exists
-                if ($form.find('.wcmqs-notice-container').length === 0) {
-                    this.noticeContainer = $('<div class="wcmqs-notice-container woocommerce-info" style="display:none;"></div>');
-                    $form.prepend(this.noticeContainer);
+                // Check if validation message already exists
+                if ($form.find('.wcmqs-validation-message').length === 0) {
+                    this.validationMessage = $('<div class="wcmqs-validation-message" style="display:none;"></div>');
+                    $form.prepend(this.validationMessage);
                 } else {
-                    this.noticeContainer = $form.find('.wcmqs-notice-container');
+                    this.validationMessage = $form.find('.wcmqs-validation-message');
                 }
             }
         },
@@ -171,10 +171,10 @@
 
                         // Show all error messages
                         var errorMessage = validation.errors.join(' ');
-                        self.showNotice(errorMessage);
+                        self.showMessage(errorMessage);
 
-                        // Scroll to notice
-                        self.scrollToNotice();
+                        // Scroll to message
+                        self.scrollToMessage();
 
                         return false;
                     }
@@ -197,8 +197,8 @@
                     self.previousQuantity = parseInt($quantityInput.val()) || 1;
                 }
 
-                // Hide any existing notices
-                self.hideNotice();
+                // Hide any existing messages
+                self.hideMessage();
             });
 
             // Handle reset variations
@@ -214,7 +214,7 @@
                     self.previousQuantity = parseInt($quantityInput.val()) || 1;
                 }
 
-                self.hideNotice();
+                self.hideMessage();
             });
         },
 
@@ -230,7 +230,7 @@
             var quantity = parseInt($input.val()) || 1;
 
             // Hide any existing error messages (since user is adjusting)
-            this.hideNotice();
+            this.hideMessage();
 
             // Auto-snap to nearest valid quantity based on step
             if (this.currentStep > 1) {
@@ -343,33 +343,33 @@
         },
 
         /**
-         * Show notice message
+         * Show validation message
          */
-        showNotice: function(message) {
-            if (this.noticeContainer) {
-                this.noticeContainer.html('<p>' + message + '</p>').slideDown(300);
+        showMessage: function(message) {
+            if (this.validationMessage) {
+                this.validationMessage.text(message).slideDown(300);
             } else {
-                // Fallback: show alert if container not available
+                // Fallback: show alert if element not available
                 alert(message);
             }
         },
 
         /**
-         * Hide notice message
+         * Hide validation message
          */
-        hideNotice: function() {
-            if (this.noticeContainer) {
-                this.noticeContainer.slideUp(300);
+        hideMessage: function() {
+            if (this.validationMessage) {
+                this.validationMessage.slideUp(300);
             }
         },
 
         /**
-         * Scroll to notice
+         * Scroll to validation message
          */
-        scrollToNotice: function() {
-            if (this.noticeContainer && this.noticeContainer.is(':visible')) {
+        scrollToMessage: function() {
+            if (this.validationMessage && this.validationMessage.is(':visible')) {
                 $('html, body').animate({
-                    scrollTop: this.noticeContainer.offset().top - 100
+                    scrollTop: this.validationMessage.offset().top - 100
                 }, 500);
             }
         }

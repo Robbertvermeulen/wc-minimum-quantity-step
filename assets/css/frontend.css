@@ -1,33 +1,19 @@
 /**
  * WooCommerce Minimum Quantity Step - Frontend Styles
  *
- * Styles for validation notices and UI elements
+ * Styles for validation messages
  */
 
-/* Notice container - Simple orange text */
-.wcmqs-notice-container {
-    position: relative;
-    padding: 0.5em 0;
-    margin-bottom: 0.5em;
-    color: #ea580c;
+/* Validation message - Simple text only */
+.wcmqs-validation-message {
+    color: #F9BB3F;
     font-size: 0.95em;
-    list-style: none !important;
-}
-
-.wcmqs-notice-container p {
-    margin: 0;
-    padding: 0;
-    color: #ea580c;
-}
-
-/* Ensure notice is visible above other elements */
-.wcmqs-notice-container {
-    z-index: 99;
+    margin-bottom: 0.5em;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .wcmqs-notice-container {
+    .wcmqs-validation-message {
         font-size: 0.9em;
     }
 }
