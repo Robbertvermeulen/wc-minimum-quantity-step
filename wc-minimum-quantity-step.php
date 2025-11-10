@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.0.5');
+define('WC_MIN_QTY_STEP_VERSION', '1.0.6');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -93,6 +93,7 @@ class WC_Minimum_Quantity_Step {
         // Validation hooks
         add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_quantity_step'), 10, 3);
         add_filter('woocommerce_update_cart_validation', array($this, 'validate_cart_quantity_step'), 10, 4);
+        add_action('woocommerce_checkout_process', array($this, 'validate_checkout_quantities'));
 
         // AJAX endpoint for getting step value
         add_action('wp_ajax_get_quantity_step', array($this, 'ajax_get_quantity_step'));
@@ -395,7 +396,10 @@ class WC_Minimum_Quantity_Step {
         $step = $this->get_product_quantity_step($product_id);
         $min = $this->get_product_minimum_quantity($product_id);
         $max = $this->get_product_maximum_quantity($product_id);
-        $product_name = get_the_title($product_id);
+
+        // Get product object for proper name
+        $product = wc_get_product($product_id);
+        $product_name = $product ? $product->get_name() : get_the_title($product_id);
 
         // Check step (multiples)
         if ($step > 1 && $quantity % $step !== 0) {
@@ -443,11 +447,18 @@ class WC_Minimum_Quantity_Step {
      * Validate quantity when updating cart
      */
     public function validate_cart_quantity_step($passed, $cart_item_key, $values, $quantity) {
-        $product_id = $values['product_id'];
+        // Use variation ID if it exists, otherwise use product ID
+        $product_id = isset($values['variation_id']) && $values['variation_id'] > 0
+            ? $values['variation_id']
+            : $values['product_id'];
+
         $step = $this->get_product_quantity_step($product_id);
         $min = $this->get_product_minimum_quantity($product_id);
         $max = $this->get_product_maximum_quantity($product_id);
-        $product_name = get_the_title($product_id);
+
+        // Get product object for proper name
+        $product = wc_get_product($product_id);
+        $product_name = $product ? $product->get_name() : get_the_title($product_id);
 
         // Check step (multiples)
         if ($step > 1 && $quantity % $step !== 0) {
@@ -489,6 +500,70 @@ class WC_Minimum_Quantity_Step {
         }
 
         return $passed;
+    }
+
+    /**
+     * Validate all cart quantities during checkout process
+     * This is a final safety check before order placement
+     */
+    public function validate_checkout_quantities() {
+        $cart = WC()->cart;
+
+        if (!$cart || $cart->is_empty()) {
+            return;
+        }
+
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+            // Use variation ID if it exists, otherwise use product ID
+            $product_id = isset($cart_item['variation_id']) && $cart_item['variation_id'] > 0
+                ? $cart_item['variation_id']
+                : $cart_item['product_id'];
+
+            $quantity = $cart_item['quantity'];
+            $step = $this->get_product_quantity_step($product_id);
+            $min = $this->get_product_minimum_quantity($product_id);
+            $max = $this->get_product_maximum_quantity($product_id);
+
+            // Get product object for proper name
+            $product = wc_get_product($product_id);
+            $product_name = $product ? $product->get_name() : get_the_title($product_id);
+
+            // Check step (multiples)
+            if ($step > 1 && $quantity % $step !== 0) {
+                wc_add_notice(
+                    sprintf(
+                        __('"%s" must be ordered in multiples of %d. Please update your cart.', 'wc-minimum-quantity-step'),
+                        $product_name,
+                        $step
+                    ),
+                    'error'
+                );
+            }
+
+            // Check minimum
+            if ($min > 0 && $quantity < $min) {
+                wc_add_notice(
+                    sprintf(
+                        __('"%s" requires a minimum of %d items. Please update your cart.', 'wc-minimum-quantity-step'),
+                        $product_name,
+                        $min
+                    ),
+                    'error'
+                );
+            }
+
+            // Check maximum
+            if ($max > 0 && $quantity > $max) {
+                wc_add_notice(
+                    sprintf(
+                        __('"%s" allows a maximum of %d items. Please update your cart.', 'wc-minimum-quantity-step'),
+                        $product_name,
+                        $max
+                    ),
+                    'error'
+                );
+            }
+        }
     }
 }
 
