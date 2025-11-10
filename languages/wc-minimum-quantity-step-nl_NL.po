@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the WooCommerce Minimum Quantity Step plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Minimum Quantity Step 1.0.7\n"
+"Project-Id-Version: WooCommerce Minimum Quantity Step 1.0.8\n"
 "Report-Msgid-Bugs-To: https://github.com/robbertvermeulen/wc-minimum-quantity-step\n"
 "POT-Creation-Date: 2024-11-10 12:00+0000\n"
 "PO-Revision-Date: 2024-11-10 12:00+0000\n"

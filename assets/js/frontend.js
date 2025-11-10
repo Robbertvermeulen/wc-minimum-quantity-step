@@ -364,13 +364,21 @@
         },
 
         /**
-         * Scroll to validation message
+         * Scroll to validation message (only if not in viewport)
          */
         scrollToMessage: function() {
             if (this.validationMessage && this.validationMessage.is(':visible')) {
-                $('html, body').animate({
-                    scrollTop: this.validationMessage.offset().top - 100
-                }, 500);
+                var messageTop = this.validationMessage.offset().top;
+                var messageBottom = messageTop + this.validationMessage.outerHeight();
+                var windowTop = $(window).scrollTop();
+                var windowBottom = windowTop + $(window).height();
+
+                // Only scroll if message is outside viewport
+                if (messageTop < windowTop || messageBottom > windowBottom) {
+                    $('html, body').animate({
+                        scrollTop: messageTop - 100
+                    }, 500);
+                }
             }
         }
     };
