@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.0.8
+ * Version: 1.0.9
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.0.8');
+define('WC_MIN_QTY_STEP_VERSION', '1.0.9');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -69,14 +69,14 @@ class WC_Minimum_Quantity_Step {
      * Initialize plugin
      */
     public function init() {
+        // Load text domain on WordPress init hook for proper timing
+        add_action('init', array($this, 'load_textdomain'));
+
         // Check if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
             return;
         }
-
-        // Load text domain
-        load_plugin_textdomain('wc-minimum-quantity-step', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
         // Admin hooks - Add custom field to product
         add_action('woocommerce_product_options_inventory_product_data', array($this, 'add_quantity_step_field'));
@@ -98,6 +98,13 @@ class WC_Minimum_Quantity_Step {
         // AJAX endpoint for getting step value
         add_action('wp_ajax_get_quantity_step', array($this, 'ajax_get_quantity_step'));
         add_action('wp_ajax_nopriv_get_quantity_step', array($this, 'ajax_get_quantity_step'));
+    }
+
+    /**
+     * Load plugin text domain for translations
+     */
+    public function load_textdomain() {
+        load_plugin_textdomain('wc-minimum-quantity-step', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     /**
