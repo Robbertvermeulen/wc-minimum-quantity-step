@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.1.0');
+define('WC_MIN_QTY_STEP_VERSION', '1.2.0');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -382,6 +382,59 @@ class WC_Minimum_Quantity_Step {
     }
 
     /**
+     * Get current cart quantity for a specific product/variation
+     *
+     * @param int $product_id Product or variation ID
+     * @return int Current quantity in cart
+     */
+    public function get_cart_quantity_for_item($product_id) {
+        $cart = WC()->cart;
+
+        if (!$cart || $cart->is_empty()) {
+            return 0;
+        }
+
+        $quantity = 0;
+
+        foreach ($cart->get_cart() as $cart_item) {
+            $cart_product_id = isset($cart_item['variation_id']) && $cart_item['variation_id'] > 0
+                ? $cart_item['variation_id']
+                : $cart_item['product_id'];
+
+            if ($cart_product_id == $product_id) {
+                $quantity += $cart_item['quantity'];
+            }
+        }
+
+        return $quantity;
+    }
+
+    /**
+     * Get total cart quantity for all variations of a parent product
+     *
+     * @param int $parent_id Parent product ID
+     * @return int Total quantity of all variations in cart
+     */
+    public function get_cart_quantity_for_product_family($parent_id) {
+        $cart = WC()->cart;
+
+        if (!$cart || $cart->is_empty()) {
+            return 0;
+        }
+
+        $quantity = 0;
+
+        foreach ($cart->get_cart() as $cart_item) {
+            // Check if this cart item belongs to the parent product
+            if ($cart_item['product_id'] == $parent_id) {
+                $quantity += $cart_item['quantity'];
+            }
+        }
+
+        return $quantity;
+    }
+
+    /**
      * Add quantity restrictions to variation data
      */
     public function add_variation_quantity_step($variation_data, $product, $variation) {
@@ -463,6 +516,10 @@ class WC_Minimum_Quantity_Step {
      * Validate quantity when adding to cart
      */
     public function validate_quantity_step($passed, $product_id, $quantity) {
+        // Get current cart quantity for this item (Feature 2)
+        $cart_quantity = $this->get_cart_quantity_for_item($product_id);
+        $total_quantity = $cart_quantity + $quantity;
+
         $step = $this->get_product_quantity_step($product_id);
         $min = $this->get_product_minimum_quantity($product_id);
         $max = $this->get_product_maximum_quantity($product_id);
@@ -471,43 +528,80 @@ class WC_Minimum_Quantity_Step {
         $product = wc_get_product($product_id);
         $product_name = $product ? $product->get_name() : get_the_title($product_id);
 
-        // Check step (multiples)
-        if ($step > 1 && $quantity % $step !== 0) {
+        // Check step (multiples) with total quantity
+        if ($step > 1 && $total_quantity % $step !== 0) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" moet besteld worden in veelvouden van %d.', 'wc-minimum-quantity-step'),
+                    __('"%s" moet besteld worden in veelvouden van %d. Je hebt al %d in je winkelwagen.', 'wc-minimum-quantity-step'),
                     $product_name,
-                    $step
+                    $step,
+                    $cart_quantity
                 ),
                 'error'
             );
             $passed = false;
         }
 
-        // Check minimum
-        if ($min > 0 && $quantity < $min) {
+        // Check minimum with total quantity
+        if ($min > 0 && $total_quantity < $min) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" vereist minimaal %d stuks.', 'wc-minimum-quantity-step'),
+                    __('"%s" vereist minimaal %d stuks. Je hebt al %d in je winkelwagen.', 'wc-minimum-quantity-step'),
                     $product_name,
-                    $min
+                    $min,
+                    $cart_quantity
                 ),
                 'error'
             );
             $passed = false;
         }
 
-        // Check maximum
-        if ($max > 0 && $quantity > $max) {
+        // Check maximum with total quantity
+        if ($max > 0 && $total_quantity > $max) {
             wc_add_notice(
                 sprintf(
-                    __('"%s" staat maximaal %d stuks toe.', 'wc-minimum-quantity-step'),
+                    __('"%s" staat maximaal %d stuks toe. Je hebt al %d in je winkelwagen.', 'wc-minimum-quantity-step'),
                     $product_name,
-                    $max
+                    $max,
+                    $cart_quantity
                 ),
                 'error'
             );
             $passed = false;
+        }
+
+        // Feature 1: Check parent max for variations (only if apply_to_variations is OFF)
+        if ($product && $product->is_type('variation')) {
+            $parent_id = $product->get_parent_id();
+            $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+            // Only check parent max if vinkje is OFF
+            if ($apply_to_variations !== 'yes') {
+                $parent_max = get_post_meta($parent_id, '_maximum_quantity', true);
+                $parent_max = !empty($parent_max) && $parent_max > 0 ? absint($parent_max) : 0;
+
+                if ($parent_max > 0) {
+                    // Get total quantity of ALL variations of this parent in cart
+                    $family_cart_quantity = $this->get_cart_quantity_for_product_family($parent_id);
+                    $family_total_quantity = $family_cart_quantity + $quantity;
+
+                    if ($family_total_quantity > $parent_max) {
+                        $parent_product = wc_get_product($parent_id);
+                        $parent_name = $parent_product ? $parent_product->get_name() : get_the_title($parent_id);
+
+                        wc_add_notice(
+                            sprintf(
+                                __('"%s" (alle variaties samen) staat maximaal %d stuks toe. Je hebt al %d in je winkelwagen.', 'wc-minimum-quantity-step'),
+                                $parent_name,
+                                $parent_max,
+                                $family_cart_quantity
+                            ),
+                            'error'
+                        );
+                        $passed = false;
+                    }
+                }
+            }
         }
 
         return $passed;
@@ -567,6 +661,53 @@ class WC_Minimum_Quantity_Step {
                 'error'
             );
             $passed = false;
+        }
+
+        // Feature 1: Check parent max for variations (only if apply_to_variations is OFF)
+        if ($product && $product->is_type('variation')) {
+            $parent_id = $product->get_parent_id();
+            $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+            // Only check parent max if vinkje is OFF
+            if ($apply_to_variations !== 'yes') {
+                $parent_max = get_post_meta($parent_id, '_maximum_quantity', true);
+                $parent_max = !empty($parent_max) && $parent_max > 0 ? absint($parent_max) : 0;
+
+                if ($parent_max > 0) {
+                    $cart = WC()->cart;
+                    if ($cart && !$cart->is_empty()) {
+                        // Calculate total quantity of all variations except current item
+                        $family_total = 0;
+                        foreach ($cart->get_cart() as $item_key => $cart_item) {
+                            if ($cart_item['product_id'] == $parent_id) {
+                                // Skip current item being updated
+                                if ($item_key === $cart_item_key) {
+                                    continue;
+                                }
+                                $family_total += $cart_item['quantity'];
+                            }
+                        }
+
+                        // Add new quantity
+                        $family_total += $quantity;
+
+                        if ($family_total > $parent_max) {
+                            $parent_product = wc_get_product($parent_id);
+                            $parent_name = $parent_product ? $parent_product->get_name() : get_the_title($parent_id);
+
+                            wc_add_notice(
+                                sprintf(
+                                    __('"%s" (alle variaties samen) staat maximaal %d stuks toe.', 'wc-minimum-quantity-step'),
+                                    $parent_name,
+                                    $parent_max
+                                ),
+                                'error'
+                            );
+                            $passed = false;
+                        }
+                    }
+                }
+            }
         }
 
         return $passed;
@@ -632,6 +773,50 @@ class WC_Minimum_Quantity_Step {
                     ),
                     'error'
                 );
+            }
+        }
+
+        // Feature 1: Check parent max totals for variable products (only if apply_to_variations is OFF)
+        // This prevents checkout if total variations exceed parent max
+        $checked_parents = array(); // Track which parents we've already checked
+
+        foreach ($cart->get_cart() as $cart_item) {
+            if (isset($cart_item['variation_id']) && $cart_item['variation_id'] > 0) {
+                $parent_id = $cart_item['product_id'];
+
+                // Skip if we already checked this parent
+                if (in_array($parent_id, $checked_parents)) {
+                    continue;
+                }
+
+                $checked_parents[] = $parent_id;
+
+                $apply_to_variations = get_post_meta($parent_id, '_apply_restrictions_to_variations', true);
+
+                // Only check parent max if vinkje is OFF
+                if ($apply_to_variations !== 'yes') {
+                    $parent_max = get_post_meta($parent_id, '_maximum_quantity', true);
+                    $parent_max = !empty($parent_max) && $parent_max > 0 ? absint($parent_max) : 0;
+
+                    if ($parent_max > 0) {
+                        // Calculate total quantity for all variations of this parent
+                        $family_total = $this->get_cart_quantity_for_product_family($parent_id);
+
+                        if ($family_total > $parent_max) {
+                            $parent_product = wc_get_product($parent_id);
+                            $parent_name = $parent_product ? $parent_product->get_name() : get_the_title($parent_id);
+
+                            wc_add_notice(
+                                sprintf(
+                                    __('"%s" (alle variaties samen) staat maximaal %d stuks toe. Update je winkelwagen.', 'wc-minimum-quantity-step'),
+                                    $parent_name,
+                                    $parent_max
+                                ),
+                                'error'
+                            );
+                        }
+                    }
+                }
             }
         }
     }
