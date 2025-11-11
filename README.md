@@ -1,22 +1,22 @@
 # WooCommerce Minimum Quantity Step
 
-Een WooCommerce plugin waarmee je minimale/maximale hoeveelheden en hoeveelheids-stappen per product kunt instellen, terwijl de standaardhoeveelheid op 1 blijft voor Google Shopping-compliance.
+A WooCommerce plugin that allows you to set minimum/maximum quantities and quantity steps per product, while keeping the default quantity at 1 for Google Shopping compliance.
 
 ## Features
 
-- ✅ Stel aangepaste hoeveelheids-stappen in per product (bijv. moet besteld worden in veelvouden van 2, 3, 5, etc.)
-- ✅ Stel minimale en maximale hoeveelheden in per product en variatie
-- ✅ Standaardhoeveelheid blijft op 1 (compliant met Google Shopping vereisten)
-- ✅ Real-time JavaScript validatie met gebruiksvriendelijke foutmeldingen
-- ✅ Server-side PHP validatie voor toevoegen aan winkelwagen en winkelwagen updates
-- ✅ Winkelwagen hoeveelheid controle (bestaande + nieuwe hoeveelheid validatie)
-- ✅ Variabele producten: kies of parent max voor alle variaties samen geldt of per variatie
-- ✅ Dynamische step aanpassing na geldige hoeveelheid selectie
-- ✅ Werkt met zowel simpele als variabele producten
-- ✅ Compatibel met de meeste WooCommerce themes en custom quantity buttons
-- ✅ Universele implementatie met standaard WooCommerce hooks en classes
-- ✅ Lichtgewicht en performance-geoptimaliseerd
-- ✅ Meertalig: Nederlands (standaard) en Engels
+- ✅ Set custom quantity steps per product (e.g., must order in multiples of 2, 3, 5, etc.)
+- ✅ Set minimum and maximum quantities per product and variation
+- ✅ Default quantity remains at 1 (compliant with Google Shopping requirements)
+- ✅ Real-time JavaScript validation with user-friendly error messages
+- ✅ Server-side PHP validation for add-to-cart and cart updates
+- ✅ Cart quantity checking (validates existing + new quantity)
+- ✅ Variable products: choose if parent max applies to all variations combined or per variation
+- ✅ Dynamic step adjustment after valid quantity selection
+- ✅ Works with both simple and variable products
+- ✅ Compatible with most WooCommerce themes and custom quantity buttons
+- ✅ Universal implementation using standard WooCommerce hooks and classes
+- ✅ Lightweight and performance-optimized
+- ✅ Multilingual ready with translation support
 
 ## The Problem This Plugin Solves
 
@@ -59,9 +59,9 @@ This plugin solves this by:
 3. Scroll to the **Product Data** section
 4. Click on the **Inventory** tab
 5. Find the **Quantity Restrictions** section with the following fields:
-   - **Minimum Quantity Step**: Veelvouden waarin besteld moet worden (bijv. `2` voor paren)
-   - **Minimum Quantity**: Minimaal aantal stuks per bestelling (optioneel)
-   - **Maximum Quantity**: Maximaal aantal stuks per bestelling (optioneel)
+   - **Minimum Quantity Step**: Multiples in which the product must be ordered (e.g., `2` for pairs)
+   - **Minimum Quantity**: Minimum number of items per order (optional)
+   - **Maximum Quantity**: Maximum number of items per order (optional)
 6. Enter your desired values (all fields are optional)
 7. Click **Update** to save
 
@@ -199,9 +199,9 @@ wc-minimum-quantity-step/
 │   └── js/
 │       └── frontend.js            # Client-side validation logic
 ├── languages/
-│   ├── wc-minimum-quantity-step-en_US.po   # English translations
-│   ├── wc-minimum-quantity-step-en_US.mo
-│   └── wc-minimum-quantity-step.pot        # Translation template
+│   ├── wc-minimum-quantity-step-{locale}.po   # Translation files
+│   ├── wc-minimum-quantity-step-{locale}.mo   # Compiled translations
+│   └── wc-minimum-quantity-step.pot           # Translation template
 ├── wc-minimum-quantity-step.php   # Main plugin file
 └── README.md
 ```
@@ -229,7 +229,7 @@ You can customize the validation messages using WordPress filters or by editing 
 add_filter('gettext', 'custom_wcmqs_error_message', 10, 3);
 function custom_wcmqs_error_message($translation, $text, $domain) {
     if ($domain === 'wc-minimum-quantity-step') {
-        if (strpos($text, 'moet besteld worden in veelvouden') !== false) {
+        if (strpos($text, 'must be ordered in multiples') !== false) {
             return 'Custom message with %d placeholder';
         }
     }
@@ -238,9 +238,10 @@ function custom_wcmqs_error_message($translation, $text, $domain) {
 ```
 
 **Option 2: Edit language files**
-- Edit `languages/wc-minimum-quantity-step-en_US.po` for English
-- Dutch is the default in the code
-- Recompile .mo files after changes
+- Create your own translation files in the `languages/` directory
+- Use tools like Poedit to edit `.po` files
+- Compile to `.mo` files after changes
+- Load your translations using WordPress i18n system
 
 ### Styling the Validation Message
 
@@ -312,10 +313,11 @@ function my_custom_validation($passed, $product_id, $quantity, $variation_id, $v
 ### Issue: Translation Not Working
 
 **Solutions:**
-1. Dutch is the default language in the code
-2. For English, ensure `languages/wc-minimum-quantity-step-en_US.mo` file exists
-3. Set WordPress language to English in Settings > General
+1. Ensure your translation `.mo` file exists in the `languages/` directory
+2. Check that the file naming convention is correct: `wc-minimum-quantity-step-{locale}.mo`
+3. Set your WordPress language in Settings > General
 4. Clear any translation caches
+5. Use WordPress translation plugins like Loco Translate for easier management
 
 ## Support
 
@@ -342,8 +344,8 @@ For bug reports and feature requests, please use the [GitHub Issues](https://git
 
 ### 1.1.0 - 2024-11-11
 - Added: Minimum and Maximum quantity fields (in addition to step)
-- Added: Multilingual support (Dutch default, English translations)
-- Changed: Validation message styling to simple text with #F9BB3F color
+- Added: Multilingual support with translation-ready architecture
+- Changed: Validation message styling to simple text with customizable color
 - Changed: All admin fields are now optional (can be left empty)
 - Added: Checkout validation
 - Added: Scroll behavior only when message is outside viewport
