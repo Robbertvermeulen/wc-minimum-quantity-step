@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.2.0');
+define('WC_MIN_QTY_STEP_VERSION', '1.2.1');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -91,7 +91,7 @@ class WC_Minimum_Quantity_Step {
         add_filter('woocommerce_available_variation', array($this, 'add_variation_quantity_step'), 10, 3);
 
         // Validation hooks
-        add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_quantity_step'), 10, 3);
+        add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_quantity_step'), 10, 5);
         add_filter('woocommerce_update_cart_validation', array($this, 'validate_cart_quantity_step'), 10, 4);
         add_action('woocommerce_checkout_process', array($this, 'validate_checkout_quantities'));
 
@@ -515,18 +515,21 @@ class WC_Minimum_Quantity_Step {
     /**
      * Validate quantity when adding to cart
      */
-    public function validate_quantity_step($passed, $product_id, $quantity) {
+    public function validate_quantity_step($passed, $product_id, $quantity, $variation_id = 0, $variations = array()) {
+        // Use variation ID if it exists, otherwise use product ID
+        $actual_product_id = $variation_id > 0 ? $variation_id : $product_id;
+
         // Get current cart quantity for this item (Feature 2)
-        $cart_quantity = $this->get_cart_quantity_for_item($product_id);
+        $cart_quantity = $this->get_cart_quantity_for_item($actual_product_id);
         $total_quantity = $cart_quantity + $quantity;
 
-        $step = $this->get_product_quantity_step($product_id);
-        $min = $this->get_product_minimum_quantity($product_id);
-        $max = $this->get_product_maximum_quantity($product_id);
+        $step = $this->get_product_quantity_step($actual_product_id);
+        $min = $this->get_product_minimum_quantity($actual_product_id);
+        $max = $this->get_product_maximum_quantity($actual_product_id);
 
         // Get product object for proper name
-        $product = wc_get_product($product_id);
-        $product_name = $product ? $product->get_name() : get_the_title($product_id);
+        $product = wc_get_product($actual_product_id);
+        $product_name = $product ? $product->get_name() : get_the_title($actual_product_id);
 
         // Check step (multiples) with total quantity
         if ($step > 1 && $total_quantity % $step !== 0) {
