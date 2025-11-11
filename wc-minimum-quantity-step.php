@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.2.1');
+define('WC_MIN_QTY_STEP_VERSION', '1.2.2');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -202,21 +202,39 @@ class WC_Minimum_Quantity_Step {
      * Save quantity restriction fields
      */
     public function save_quantity_step_field($post_id) {
+        // Only save if the parent product fields were actually submitted
+        // When editing variations only, these fields won't be in POST
+        if (!isset($_POST['_minimum_quantity_step']) && !isset($_POST['_minimum_quantity']) && !isset($_POST['_maximum_quantity'])) {
+            return;
+        }
+
         // Save step
-        $step = isset($_POST['_minimum_quantity_step']) ? absint($_POST['_minimum_quantity_step']) : '';
-        update_post_meta($post_id, '_minimum_quantity_step', $step);
+        if (isset($_POST['_minimum_quantity_step'])) {
+            $step = absint($_POST['_minimum_quantity_step']);
+            update_post_meta($post_id, '_minimum_quantity_step', $step);
+        }
 
         // Save minimum
-        $min = isset($_POST['_minimum_quantity']) ? absint($_POST['_minimum_quantity']) : '';
-        update_post_meta($post_id, '_minimum_quantity', $min);
+        if (isset($_POST['_minimum_quantity'])) {
+            $min = absint($_POST['_minimum_quantity']);
+            update_post_meta($post_id, '_minimum_quantity', $min);
+        }
 
         // Save checkbox for applying to variations
-        $apply_to_variations = isset($_POST['_apply_restrictions_to_variations']) ? 'yes' : 'no';
-        update_post_meta($post_id, '_apply_restrictions_to_variations', $apply_to_variations);
+        if (isset($_POST['_apply_restrictions_to_variations'])) {
+            update_post_meta($post_id, '_apply_restrictions_to_variations', 'yes');
+        } else {
+            // Only update if we're actually saving parent fields
+            if (isset($_POST['_minimum_quantity_step']) || isset($_POST['_minimum_quantity']) || isset($_POST['_maximum_quantity'])) {
+                update_post_meta($post_id, '_apply_restrictions_to_variations', 'no');
+            }
+        }
 
         // Save maximum
-        $max = isset($_POST['_maximum_quantity']) ? absint($_POST['_maximum_quantity']) : '';
-        update_post_meta($post_id, '_maximum_quantity', $max);
+        if (isset($_POST['_maximum_quantity'])) {
+            $max = absint($_POST['_maximum_quantity']);
+            update_post_meta($post_id, '_maximum_quantity', $max);
+        }
     }
 
     /**
