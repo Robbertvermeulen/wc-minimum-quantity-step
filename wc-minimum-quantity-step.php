@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Minimum Quantity Step
  * Plugin URI: https://github.com/robbertvermeulen/wc-minimum-quantity-step
  * Description: Set minimum/maximum quantities and quantity steps per product while keeping default quantity at 1 for Google Shopping compliance
- * Version: 1.2.2
+ * Version: 1.2.3
  * Author: Robbert Vermeulen
  * Author URI: https://github.com/robbertvermeulen
  * Text Domain: wc-minimum-quantity-step
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WC_MIN_QTY_STEP_VERSION', '1.2.2');
+define('WC_MIN_QTY_STEP_VERSION', '1.2.3');
 define('WC_MIN_QTY_STEP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WC_MIN_QTY_STEP_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -202,6 +202,18 @@ class WC_Minimum_Quantity_Step {
      * Save quantity restriction fields
      */
     public function save_quantity_step_field($post_id) {
+        // Check if we're saving variation data (arrays) instead of parent data
+        // Variation fields come as arrays: _maximum_quantity[0], _maximum_quantity[1], etc.
+        if (isset($_POST['_minimum_quantity_step']) && is_array($_POST['_minimum_quantity_step'])) {
+            return; // This is a variation save, don't touch parent
+        }
+        if (isset($_POST['_minimum_quantity']) && is_array($_POST['_minimum_quantity'])) {
+            return; // This is a variation save, don't touch parent
+        }
+        if (isset($_POST['_maximum_quantity']) && is_array($_POST['_maximum_quantity'])) {
+            return; // This is a variation save, don't touch parent
+        }
+
         // Only save if the parent product fields were actually submitted
         // When editing variations only, these fields won't be in POST
         if (!isset($_POST['_minimum_quantity_step']) && !isset($_POST['_minimum_quantity']) && !isset($_POST['_maximum_quantity'])) {
